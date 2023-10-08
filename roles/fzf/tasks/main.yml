@@ -1,0 +1,13 @@
+---
+- name: Install fzf
+  become: true
+  ansible.builtin.apt:
+    name: fzf
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install bash autocomplete key-bindings
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME + '/.bashrc' }}"
+    line: "source '/usr/share/doc/fzf/examples/key-bindings.bash'"

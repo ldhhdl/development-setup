@@ -1,0 +1,44 @@
+---
+- name: Install packages
+  become: true
+  ansible.builtin.package:
+    name:
+      - "{{ ghidra_jdk_package }}"
+      - unzip
+    state: "present"
+
+- name: Create Ghidra installation directory
+  ansible.builtin.file:
+    path: "{{ ghidra_installation_directory }}"
+    state: "directory"
+
+- name: Download Ghidra release archive
+  ansible.builtin.get_url:
+    url: "{{ ghidra_file_url }}"
+    dest: "{{ ghidra_download_target }}"
+    checksum: "{{ ghidra_file_checksum }}"
+
+- name: Unzip downloaded archive
+  ansible.builtin.unarchive:
+    src: "{{ ghidra_download_target }}"
+    dest: "{{ ghidra_installation_directory }}"
+
+#
+# Update ~/.bashrc to include the necessary directory
+# so that ghidraRun is on the PATH
+#
+
+- name: Find ghidraRun executable
+  ansible.builtin.shell:
+    cmd: "find {{ ghidra_installation_directory }} -name ghidraRun 2>/dev/null"
+  register: ghidra_run_find
+  changed_when: false  # Never changes the machine
+
+- name: Check ghidra_run_find conditions
+  ansible.builtin.assert:
+    that: ghidra_run_find.rc == 0 and ghidra_run_find.stdout_lines|length == 1
+
+- name: Update path to include ghidraRun directory
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME + '/.bashrc' }}"
+    line: "export PATH=${PATH}:{{ ghidra_run_find.stdout_lines[0] | dirname }}"

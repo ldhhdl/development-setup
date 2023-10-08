@@ -1,0 +1,3 @@
+---
+neovim_working_directory: "/tmp/neovim_clone"
+neovim_clobber_config: true

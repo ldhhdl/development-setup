@@ -1,0 +1,46 @@
+---
+- name: Install build prerequisites
+  become: true
+  ansible.builtin.package:
+    name:
+      - ninja-build
+      - gettext
+      - cmake
+      - unzip
+      - curl
+
+- name: Clone neovim github repo
+  ansible.builtin.git:
+    repo: "https://github.com/neovim/neovim"
+    dest: "{{ neovim_working_directory }}"
+    version: "stable"
+
+- name: Build neovim
+  community.general.make:
+    chdir: "{{ neovim_working_directory }}"
+    params:
+      CMAKE_BUILD_TYPE: "RelWithDebInfo"
+
+- name: Install neovim
+  become: true
+  community.general.make:
+    chdir: "{{ neovim_working_directory }}"
+    target: "install"
+
+- name: Setup kickstart config if required
+  when: neovim_clobber_config is true
+  block:
+    - name: Make sure .config directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME + '/.config' }}"
+        state: "directory"
+
+    - name: Cleanup any existing neovim config
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME + '/.config/nvim' }}"
+        state: "absent"
+
+    - name: Install neovim kickstart
+      ansible.builtin.git:
+        repo: "https://github.com/nvim-lua/kickstart.nvim.git"
+        dest: "{{ ansible_env.HOME + '/.config/nvim' }}"

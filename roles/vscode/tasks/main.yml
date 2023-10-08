@@ -1,0 +1,7 @@
+---
+- name: Install vscode deb file
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    deb: "{{ vscode_download_link }}"

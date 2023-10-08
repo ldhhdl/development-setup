@@ -1,0 +1,14 @@
+- name: Setup development machine
+  hosts: localhost
+
+  pre_tasks:
+    - name: Update cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  roles:
+    - role: fzf
+    - role: neovim
+    - role: vscode
+    - role: ghidra
